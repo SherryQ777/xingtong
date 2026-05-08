@@ -25,6 +25,29 @@ body {
   box-shadow: 0 30px 80px rgba(0,0,0,0.35);
 }
 
+/* 窄屏 / 真机：铺满视口，去掉演示框外壳（桌面仍保留手机壳） */
+@media (max-width: 520px), (max-height: 520px) and (max-width: 932px) {
+  html { height: 100%; }
+  body {
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 0;
+    background: #fff;
+  }
+  .phone {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    margin: 0 auto;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+}
+
 /* ── 屏幕切换 ── */
 .screen {
   position: absolute; inset: 0;
