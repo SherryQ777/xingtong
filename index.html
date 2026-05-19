@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>点点 · 灵感笔记</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
@@ -26,8 +27,13 @@ body {
 }
 
 /* 窄屏 / 真机：铺满视口，去掉演示框外壳（桌面仍保留手机壳） */
+/* 断点覆盖主流 iPhone 竖屏(≤430)与横屏；刘海/灵动岛/底部横条用 safe-area */
 @media (max-width: 520px), (max-height: 520px) and (max-width: 932px) {
-  html { height: 100%; }
+  html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     display: block;
     min-height: 100vh;
@@ -45,10 +51,25 @@ body {
     border-radius: 0;
     border: none;
     box-shadow: none;
+    /* iPhone X 及以后：避开刘海、圆角屏、Home 指示条 */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
   }
   /* 真机已有系统状态栏，隐藏演示用假状态栏 */
   .phone .status-bar {
     display: none !important;
+  }
+  /* iOS：输入框字号 <16px 会在聚焦时强制页面缩放 */
+  textarea.input-field,
+  #theme-new-name {
+    font-size: 16px;
+  }
+  /* 灯箱关闭钮原为避开假状态栏；真机顶栏由 safe-area 处理 */
+  .img-lightbox-close {
+    top: 14px;
+    right: 14px;
   }
 }
 
@@ -259,6 +280,15 @@ body {
 .nav-title { font-size: 16px; font-weight: 600; color: #111; display: flex; align-items: center; gap: 6px; }
 .nav-dot { width: 10px; height: 10px; border-radius: 50%; background: #4ECFAF; }
 .nav-right { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+button.nav-right {
+  background: transparent;
+  border: none;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+button.nav-right:focus { outline: none; }
+button.nav-right:focus-visible { outline: 2px solid rgba(78, 207, 175, 0.45); outline-offset: 2px; border-radius: 8px; }
 
 /* ── 滚动内容区 ── */
 .scroll { flex: 1; overflow-y: auto; padding: 10px 14px 8px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -394,24 +424,71 @@ textarea.input-field::placeholder { color: #b0b0b0; font-weight: 400; }
 .sheet-overlay.open .sheet { transform: translateY(0); }
 .sheet-title { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 4px; }
 .sheet-sub { font-size: 12px; color: #999; margin-bottom: 14px; line-height: 1.4; }
-#coll-sheet .sheet-title,
-#coll-sheet .sheet-sub { text-align: center; }
-.coll-sheet-scroll {
-  max-height: min(300px, 42vh);
+#theme-sheet .sheet-title,
+#theme-sheet .sheet-sub { text-align: center; }
+.theme-sheet-scroll {
+  max-height: min(340px, 48vh);
   overflow-y: auto;
   margin: 0 -2px 4px;
   padding: 0 2px 2px;
   -webkit-overflow-scrolling: touch;
 }
-.coll-sheet-scroll::-webkit-scrollbar { width: 4px; }
-.coll-sheet-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
-.coll-pick { border: 2px solid #eee; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
-.coll-pick:last-child { margin-bottom: 2px; }
-.coll-pick.on { border-color: #4ECFAF; background: #F8FDFB; }
-.coll-pick-row { display: flex; align-items: center; justify-content: center; }
-.coll-pick-main { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.coll-pick-emoji { font-size: 22px; line-height: 1; flex-shrink: 0; }
-.coll-pick-name { font-size: 15px; font-weight: 600; color: #111; text-align: center; }
+.theme-sheet-scroll::-webkit-scrollbar { width: 4px; }
+.theme-sheet-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+.theme-swipe {
+  position: relative;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.theme-swipe:last-child { margin-bottom: 2px; }
+.theme-swipe-actions {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 72px;
+  display: flex;
+}
+.theme-swipe-del {
+  flex: 1;
+  border: none;
+  background: #FF2E4D;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.theme-swipe-del:disabled { background: #e5e5e5; color: #bbb; cursor: not-allowed; }
+.theme-swipe-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.theme-swipe-content.is-dragging { transition: none; cursor: grabbing; }
+.theme-sheet-hint {
+  font-size: 12px;
+  color: #bbb;
+  text-align: center;
+  margin: -6px 0 10px;
+}
+.theme-swipe.open .theme-swipe-content { transform: translateX(-72px); }
+.theme-row-emoji { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.theme-row-body { flex: 1; min-width: 0; }
+.theme-row-name { font-size: 15px; font-weight: 600; color: #111; }
+.theme-row-meta { font-size: 12px; color: #999; margin-top: 2px; }
 .sheet-custom { display: flex; gap: 8px; margin-top: 12px; }
 .sheet-custom input {
   flex: 1; border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; font-size: 14px; outline: none;
@@ -434,130 +511,6 @@ textarea.input-field::placeholder { color: #b0b0b0; font-weight: 400; }
 .btn-red { background: #FF2E4D; color: #fff; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .bottom-bar { padding: 12px 16px 20px; display: flex; gap: 10px; flex-shrink: 0; background: #fff; border-top: 1px solid #f5f5f5; }
-
-/* ── 发现页 ── */
-.discover-top { padding: 10px 18px 6px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-.logo-btn {
-  width: 38px; height: 38px; border-radius: 50%; background: #F0FAF6; border: none;
-  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease;
-  flex-shrink: 0;
-}
-.logo-btn svg path {
-  transition: fill 0.22s ease, stroke 0.22s ease;
-  fill: none;
-  stroke: #4ECFAF;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-/* 选中：外圈保持浅底，仅图标内部为品牌绿填充 */
-.logo-btn.pressed {
-  background: #F0FAF6;
-  transform: scale(1.06);
-  box-shadow: 0 0 0 2px rgba(78, 207, 175, 0.35);
-}
-.logo-btn.pressed svg path {
-  fill: #4ECFAF;
-  stroke: none;
-}
-.dd-tabs { display: flex; gap: 20px; font-size: 16px; color: #999; flex: 1; justify-content: center; }
-.dd-tabs .act { color: #111; font-weight: 700; }
-/* 发现页主内容：与本地截图 shot.jpeg 一致（若你使用 shot.jepg 命名请改名为 shot.jpeg 或改下方 src） */
-.feed {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  overflow: hidden;
-  background: #fff;
-}
-.feed-inner {
-  position: relative;
-  flex: 0 0 auto;
-  width: calc(100% - 10px);
-  height: 100%;
-  max-width: 100%;
-}
-.discover-feed-shot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 12%;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* ── 发现页 · 点点快捷气泡（Demo 默认展开） ── */
-/* 顶栏下沿略留空；宽度随文案收缩，避免右侧大段留白；右上/右下对称圆角 */
-.quick-panel {
-  position: absolute; top: 98px; left: 0;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 219px;
-  height: 240px;
-  max-width: calc(100% - 20px);
-  box-sizing: border-box;
-  background: rgba(245, 248, 246, 0.76);
-  border-radius: 0 18px 18px 0;
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  padding: 22px 14px 17px;
-  gap: 8px;
-  text-align: left;
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  backdrop-filter: blur(22px) saturate(1.12);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.1),
-    6px 10px 28px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  z-index: 20;
-  transform: translateY(-12px); opacity: 0; pointer-events: none;
-  transition: transform 0.22s ease, opacity 0.22s ease;
-}
-.quick-panel.open { transform: translateY(0); opacity: 1; pointer-events: all; }
-.qp-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
-  height: 23px;
-  margin: 0 0 18px;
-  padding: 0;
-  line-height: 1.3;
-  text-align: left;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-}
-.qp-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 170px;
-  height: 52px;
-  box-sizing: border-box;
-  border-radius: 10px;
-  padding: 13px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #666;
-  line-height: 1.35;
-  text-align: center;
-  white-space: nowrap;
-  cursor: pointer;
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.04);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-.qp-item:hover { transform: translateX(2px); box-shadow: 0 4px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05); }
-.qp-item.primary {
-  background: #4ECFAF; color: #fff; font-weight: 500; border: 1px solid #3dc29f;
-  box-shadow: 0 4px 16px rgba(78, 207, 175, 0.38), 0 2px 6px rgba(0,0,0,0.05);
-}
-.qp-item.primary:hover { box-shadow: 0 5px 18px rgba(78, 207, 175, 0.42), 0 2px 8px rgba(0,0,0,0.06); }
 
 /* ── 灵感库 · 合集卡片（自适应预览 + 交互） ── */
 .lib-bg { background: #F7F7F5; }
@@ -834,35 +787,11 @@ textarea.input-field::placeholder { color: #b0b0b0; font-weight: 400; }
 
 <div class="phone">
 
-  <!-- ══════ 屏1: 发现页（背景截图 + 左上气泡默认展开） ══════ -->
-  <div class="screen active" id="s-discover">
-    <div class="status-bar"><span>17:24</span><div class="status-right"><span>WiFi</span><span class="battery">38</span></div></div>
-    <div class="discover-top">
-      <button type="button" class="logo-btn pressed" id="logo-btn" aria-label="点点" title="展开/收起">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      </button>
-      <div class="dd-tabs"><span>关注</span><span class="act">发现</span><span>上海</span></div>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    </div>
-    <div class="feed">
-      <div class="feed-inner">
-        <img class="discover-feed-shot" src="shot.jpeg" alt="" draggable="false" width="1179" height="2556">
-      </div>
-    </div>
-    <div class="quick-panel open" id="quick-panel">
-      <div class="qp-title">Hi，想从哪里聊起？</div>
-      <div class="qp-item">拖拽笔记问点点</div>
-      <div class="qp-item primary" onclick="goChat('')">随手记</div>
-    </div>
-  </div>
-
-  <!-- ══════ 屏2: 点点对话 ══════ -->
-  <div class="screen" id="s-chat">
+  <!-- ══════ 屏1: 点点对话 ══════ -->
+  <div class="screen active" id="s-chat">
     <div class="status-bar"><span id="chat-time">17:46</span><div class="status-right"><span>WiFi</span><span class="battery">36</span></div></div>
     <div class="nav">
-      <button class="nav-back" onclick="showScreen('s-discover')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+      <div style="width:36px;" aria-hidden="true"></div>
       <div class="nav-title"><div class="nav-dot"></div>点点</div>
       <div class="nav-right" onclick="showScreen('s-lib')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ECFAF" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
     </div>
@@ -924,7 +853,9 @@ textarea.input-field::placeholder { color: #b0b0b0; font-weight: 400; }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <div class="nav-title"><div class="nav-dot"></div>灵感库</div>
-      <div style="width:36px;" aria-hidden="true"></div>
+      <button type="button" class="nav-right" onclick="openThemeSheet()" aria-label="管理主题" title="管理主题">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ECFAF" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
     </div>
     <div class="scroll lib-bg" style="padding:14px;" id="lib-collections-root"></div>
   </div>
@@ -1086,25 +1017,22 @@ textarea.input-field::placeholder { color: #b0b0b0; font-weight: 400; }
     </div>
   </div>
 
-  <!-- 合集选择浮层 -->
-  <div class="sheet-overlay" id="coll-sheet" onclick="if(event.target===this)closeCollectionSheet()">
+  <!-- 主题管理浮层 -->
+  <div class="sheet-overlay" id="theme-sheet" onclick="if(event.target===this)closeThemeSheet()">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="sheet-title">这条灵感放进哪里？</div>
-      <div class="sheet-sub" id="coll-sheet-preview">根据内容首推一个合集，第二项为无标签；更多合集可在下方列表中选择。</div>
-      <div class="coll-sheet-scroll">
-        <div id="coll-sheet-options"></div>
-      </div>
+      <div class="sheet-title">管理主题</div>
+      <div class="sheet-sub">新建或删除主题；记录灵感时会按内容自动归入对应主题</div>
+      <div class="theme-sheet-hint">左滑或按住拖动可删除主题</div>
+      <div class="theme-sheet-scroll" id="theme-sheet-list"></div>
       <div class="sheet-custom">
-        <input type="text" id="coll-custom-name" maxlength="16" placeholder="自定义合集名称…">
-        <button type="button" class="btn btn-ghost" style="padding:10px 14px;flex-shrink:0;" onclick="confirmCustomCollection()">创建</button>
+        <input type="text" id="theme-new-name" maxlength="16" placeholder="新主题名称…">
+        <button type="button" class="btn btn-ghost" style="padding:10px 14px;flex-shrink:0;" onclick="createTheme()">添加</button>
       </div>
       <div class="sheet-actions">
-        <button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeCollectionSheet()">取消</button>
-        <button type="button" class="btn btn-primary" style="flex:1.2;" id="coll-confirm-btn" onclick="confirmCollectionPick()" disabled>保存到所选合集</button>
+        <button type="button" class="btn btn-primary" style="flex:1;" onclick="closeThemeSheet()">完成</button>
       </div>
     </div>
   </div>
-
   <!-- 图片大图预览（合集列表 / 详情共用） -->
   <div class="img-lightbox" id="img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="img-lightbox-bg" onclick="closeImageLightbox()"></div>
@@ -1145,8 +1073,6 @@ let selectedAngleId = null;
 let noteData = null;
 
 let pendingChatImages = [];
-let pendingCollectionDraft = null;
-let sheetSelectedCollId = null;
 let voiceSpeechRec = null;
 let voiceSheetOpen = false;
 let voiceRecordingActive = false;
@@ -1375,17 +1301,19 @@ function buildCollectionSheetOrder(text) {
   return out;
 }
 
+/** 根据正文自动选择主题（关键词匹配，无命中则日常随笔） */
+function autoPickCollectionId(text) {
+  const ids = buildCollectionSheetOrder(text);
+  return ids[0] || 'daily';
+}
+
 // ══ 屏切换 ══
 function showScreen(id) {
-  if (id !== 's-discover') closeQuickPanel();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 's-lib') renderLib();
   if (id === 's-detail') renderDetail();
   if (id === 's-select') renderSelect();
-  if (id === 's-discover') {
-    requestAnimationFrame(() => openQuickPanel());
-  }
   if (id === 's-chat') runChatIntroAnimation();
 }
 
@@ -1401,44 +1329,8 @@ function runChatIntroAnimation() {
   });
 }
 
-// ══ 发现页 · 快捷气泡 ══
-const logoBtn = document.getElementById('logo-btn');
-const quickPanel = document.getElementById('quick-panel');
-
-function openQuickPanel() {
-  if (!quickPanel || !logoBtn) return;
-  document.removeEventListener('click', outsideQuickPanelClick);
-  logoBtn.classList.add('pressed');
-  quickPanel.classList.add('open');
-  setTimeout(() => document.addEventListener('click', outsideQuickPanelClick), 0);
-}
-
-function closeQuickPanel() {
-  if (!quickPanel || !logoBtn) return;
-  logoBtn.classList.remove('pressed');
-  quickPanel.classList.remove('open');
-  document.removeEventListener('click', outsideQuickPanelClick);
-}
-
-function outsideQuickPanelClick(e) {
-  if (!quickPanel.classList.contains('open')) return;
-  if (quickPanel.contains(e.target) || e.target === logoBtn || logoBtn.contains(e.target)) return;
-  closeQuickPanel();
-}
-
-function toggleQuickPanel(e) {
-  if (e) e.stopPropagation();
-  if (quickPanel.classList.contains('open')) closeQuickPanel();
-  else openQuickPanel();
-}
-
-if (logoBtn && quickPanel) {
-  logoBtn.addEventListener('click', toggleQuickPanel);
-}
-
 // ══ 进入对话 ══
 function goChat(prefill) {
-  closeQuickPanel();
   showScreen('s-chat');
   if (prefill) { document.getElementById('chat-input').value = prefill; autoResize(document.getElementById('chat-input')); }
   setTimeout(() => document.getElementById('chat-input').focus(), 100);
@@ -1584,8 +1476,7 @@ function finishVoiceInput() {
 }
 
 function sendVoiceTranscriptToChat(text) {
-  const newId = Date.now();
-  openCollectionSheet({ id: newId, text, imageUrls: [] });
+  saveInspiration({ id: Date.now(), text, imageUrls: [] });
   const input = document.getElementById('chat-input');
   input.value = '';
   autoResize(input);
@@ -1630,62 +1521,7 @@ function autoResize(el) {
   el.style.height = Math.max(h, CHAT_INPUT_LINE_MIN) + 'px';
 }
 
-// ══ 合集选择浮层 ══
-function openCollectionSheet(draft) {
-  pendingCollectionDraft = draft;
-  sheetSelectedCollId = null;
-  const ids = buildCollectionSheetOrder(draft.text || '');
-  const opts = document.getElementById('coll-sheet-options');
-  opts.innerHTML = ids.map(cid => {
-    const c = getCollectionById(cid);
-    if (!c) return '';
-    return `
-      <div class="coll-pick" data-cid="${c.id}" onclick="selectCollPick('${c.id}', this)">
-        <div class="coll-pick-row">
-          <div class="coll-pick-main">
-            <span class="coll-pick-emoji">${c.emoji}</span>
-            <div class="coll-pick-name">${escapeHtml(c.name)}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-  document.getElementById('coll-custom-name').value = '';
-  document.getElementById('coll-sheet-preview').textContent =
-    (draft.text || '').slice(0, 80) + ((draft.text || '').length > 80 ? '…' : '') +
-    (draft.imageUrls && draft.imageUrls.length ? ` · ${draft.imageUrls.length} 张图` : '');
-  document.getElementById('coll-confirm-btn').disabled = true;
-  document.getElementById('coll-sheet').classList.add('open');
-  requestAnimationFrame(() => {
-    const first = document.querySelector('#coll-sheet-options .coll-pick');
-    if (first && ids.length) {
-      sheetSelectedCollId = ids[0];
-      document.querySelectorAll('#coll-sheet-options .coll-pick').forEach(n => n.classList.remove('on'));
-      first.classList.add('on');
-      document.getElementById('coll-confirm-btn').disabled = false;
-    }
-  });
-}
-
-function selectCollPick(cid, el) {
-  sheetSelectedCollId = cid;
-  document.querySelectorAll('#coll-sheet-options .coll-pick').forEach(n => n.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('coll-confirm-btn').disabled = false;
-}
-
-function closeCollectionSheet(restoreDraft) {
-  const draft = pendingCollectionDraft;
-  document.getElementById('coll-sheet').classList.remove('open');
-  pendingCollectionDraft = null;
-  if (restoreDraft !== false && draft) {
-    const input = document.getElementById('chat-input');
-    input.value = draft.text || '';
-    pendingChatImages = (draft.imageUrls || []).slice();
-    renderPendingThumbs();
-    autoResize(input);
-  }
-}
-
+// ══ 保存灵感（自动归类） ══
 function buildUserBubbleHtmlFromDraft(draft) {
   const text = (draft.text || '').trim();
   const imgs = draft.imageUrls || [];
@@ -1697,39 +1533,16 @@ function buildUserBubbleHtmlFromDraft(draft) {
   return bubbleHtml;
 }
 
-function confirmCustomCollection() {
-  const name = document.getElementById('coll-custom-name').value.trim();
-  if (!name) return;
-  const id = 'c_' + Date.now();
-  collections.push({ id, name, emoji: '✨', keywords: [] });
-  sheetSelectedCollId = id;
-  const opts = document.getElementById('coll-sheet-options');
-  document.querySelectorAll('#coll-sheet-options .coll-pick').forEach(n => n.classList.remove('on'));
-  const row = document.createElement('div');
-  row.className = 'coll-pick on';
-  row.innerHTML = `
-    <div class="coll-pick-row">
-      <div class="coll-pick-main">
-        <span class="coll-pick-emoji">✨</span>
-        <div class="coll-pick-name">${escapeHtml(name)}</div>
-      </div>
-    </div>`;
-  row.onclick = () => selectCollPick(id, row);
-  opts.insertBefore(row, opts.firstChild);
-  document.getElementById('coll-confirm-btn').disabled = false;
-}
-
-function confirmCollectionPick() {
-  if (!pendingCollectionDraft || !sheetSelectedCollId) return;
-  const draft = pendingCollectionDraft;
-  const col = getCollectionById(sheetSelectedCollId);
+function saveInspiration(draft) {
+  const collectionId = autoPickCollectionId(draft.text || '');
+  const col = getCollectionById(collectionId);
   const tags = guessTag(draft.text || '');
   const userHtml = buildUserBubbleHtmlFromDraft(draft);
   if (userHtml) addBubble('user', userHtml);
   const ins = {
     id: draft.id,
-    text: draft.text || (draft.imageUrls.length ? '[图片记录]' : ''),
-    collectionId: sheetSelectedCollId,
+    text: draft.text || ((draft.imageUrls || []).length ? '[图片记录]' : ''),
+    collectionId,
     imageUrls: draft.imageUrls || [],
     tag: tags[0] || '#灵感',
     time: '刚刚',
@@ -1737,8 +1550,204 @@ function confirmCollectionPick() {
   inspirations.push(ins);
   selectedIds.add(ins.id);
   renderLib();
-  addBubble('ai', `已保存到「${escapeHtml(col.name)}」✅\n${tags.join(' ')}\n\n💭 还想记点什么？`);
-  closeCollectionSheet(false);
+  const themeName = col ? escapeHtml(col.name) : '灵感库';
+  addBubble('ai', `已自动归入「${themeName}」✅\n${tags.join(' ')}\n\n💭 还想记点什么？`);
+}
+
+// ══ 主题管理 ══
+function openThemeSheet() {
+  renderThemeSheetList();
+  document.getElementById('theme-sheet').classList.add('open');
+}
+
+function closeThemeSheet() {
+  document.getElementById('theme-sheet').classList.remove('open');
+  closeAllThemeSwipes();
+  renderLib();
+}
+
+const THEME_SWIPE_DEL_W = 72;
+
+function closeAllThemeSwipes(except) {
+  document.querySelectorAll('#theme-sheet-list .theme-swipe.open').forEach(el => {
+    if (except && el === except) return;
+    el.classList.remove('open');
+    const content = el.querySelector('.theme-swipe-content');
+    if (content) {
+      content.classList.remove('is-dragging');
+      content.style.transform = '';
+    }
+  });
+}
+
+let themeSwipeBlockCloseUntil = 0;
+
+function bindThemeSwipeRows() {
+  const root = document.getElementById('theme-sheet-list');
+  if (!root) return;
+  root.querySelectorAll('.theme-swipe').forEach(wrap => {
+    if (wrap.dataset.swipeBound) return;
+    wrap.dataset.swipeBound = '1';
+    const content = wrap.querySelector('.theme-swipe-content');
+    const delBtn = wrap.querySelector('.theme-swipe-del');
+    if (!content || delBtn?.disabled) return;
+
+    let startX = 0, startY = 0, startTx = 0, dragging = false, locked = null, didDragX = false;
+
+    const setTx = (tx) => {
+      const clamped = Math.max(-THEME_SWIPE_DEL_W, Math.min(0, tx));
+      content.style.transform = `translateX(${clamped}px)`;
+      return clamped;
+    };
+
+    const snap = (tx) => {
+      content.style.transform = '';
+      content.classList.remove('is-dragging');
+      if (tx < -THEME_SWIPE_DEL_W / 2) {
+        closeAllThemeSwipes(wrap);
+        wrap.classList.add('open');
+      } else {
+        wrap.classList.remove('open');
+      }
+    };
+
+    const onStart = (clientX, clientY) => {
+      startX = clientX;
+      startY = clientY;
+      startTx = wrap.classList.contains('open') ? -THEME_SWIPE_DEL_W : 0;
+      dragging = true;
+      locked = null;
+      didDragX = false;
+    };
+
+    const onMove = (clientX, clientY) => {
+      if (!dragging) return;
+      const dx = clientX - startX;
+      const dy = clientY - startY;
+      if (locked === null) {
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        locked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      if (locked === 'y') return;
+      didDragX = true;
+      content.classList.add('is-dragging');
+      setTx(startTx + dx);
+    };
+
+    const onEnd = (clientX) => {
+      if (!dragging) return;
+      dragging = false;
+      if (locked !== 'x') {
+        content.classList.remove('is-dragging');
+        locked = null;
+        return;
+      }
+      const tx = setTx(startTx + (clientX - startX));
+      snap(tx);
+      locked = null;
+      if (didDragX) themeSwipeBlockCloseUntil = Date.now() + 320;
+    };
+
+    content.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      content.setPointerCapture(e.pointerId);
+      onStart(e.clientX, e.clientY);
+    });
+
+    content.addEventListener('pointermove', e => {
+      if (!content.hasPointerCapture(e.pointerId)) return;
+      if (locked === 'x' || locked === null) e.preventDefault();
+      onMove(e.clientX, e.clientY);
+    });
+
+    content.addEventListener('pointerup', e => {
+      if (!content.hasPointerCapture(e.pointerId)) return;
+      content.releasePointerCapture(e.pointerId);
+      onEnd(e.clientX);
+    });
+
+    content.addEventListener('pointercancel', e => {
+      if (content.hasPointerCapture(e.pointerId)) content.releasePointerCapture(e.pointerId);
+      dragging = false;
+      locked = null;
+      content.classList.remove('is-dragging');
+      content.style.transform = wrap.classList.contains('open') ? '' : '';
+    });
+  });
+
+  if (!root.dataset.swipeListBound) {
+    root.dataset.swipeListBound = '1';
+    root.addEventListener('click', e => {
+      if (Date.now() < themeSwipeBlockCloseUntil) return;
+      if (e.target.closest('.theme-swipe-del')) return;
+      if (e.target.closest('.theme-swipe-content')) return;
+      closeAllThemeSwipes();
+    });
+  }
+}
+
+function renderThemeSheetList() {
+  const root = document.getElementById('theme-sheet-list');
+  if (!root) return;
+  const delDisabled = collections.filter(x => x.id !== 'untagged').length <= 1;
+  const rows = collections
+    .filter(c => c.id !== 'untagged')
+    .map(c => {
+      const n = collectionCount(c.id);
+      return `
+        <div class="theme-swipe" data-cid="${c.id}">
+          <div class="theme-swipe-actions">
+            <button type="button" class="theme-swipe-del" ${delDisabled ? 'disabled' : ''} onclick="deleteTheme('${c.id}')">删除</button>
+          </div>
+          <div class="theme-swipe-content">
+            <span class="theme-row-emoji">${c.emoji}</span>
+            <div class="theme-row-body">
+              <div class="theme-row-name">${escapeHtml(c.name)}</div>
+              <div class="theme-row-meta">${n} 条灵感</div>
+            </div>
+          </div>
+        </div>`;
+    });
+  root.innerHTML = rows.join('') || '<p style="font-size:13px;color:#999;text-align:center;padding:12px 0;">暂无主题，请在下方添加</p>';
+  bindThemeSwipeRows();
+}
+
+function createTheme() {
+  const input = document.getElementById('theme-new-name');
+  const name = (input?.value || '').trim();
+  if (!name) return;
+  if (collections.some(c => c.name === name)) {
+    alert('已有同名主题');
+    return;
+  }
+  const id = 'c_' + Date.now();
+  collections.push({ id, name, emoji: '✨', keywords: [name] });
+  if (input) input.value = '';
+  renderThemeSheetList();
+  renderLib();
+}
+
+function deleteTheme(cid) {
+  if (cid === 'untagged') return;
+  const col = getCollectionById(cid);
+  if (!col) return;
+  const deletable = collections.filter(c => c.id !== 'untagged');
+  if (deletable.length <= 1) {
+    alert('至少保留一个主题');
+    return;
+  }
+  const n = collectionCount(cid);
+  const msg = n
+    ? `确定删除「${col.name}」？其中 ${n} 条灵感将移至「无标签」。`
+    : `确定删除「${col.name}」？`;
+  if (!confirm(msg)) return;
+  inspirations.forEach(i => {
+    if (i.collectionId === cid) i.collectionId = 'untagged';
+  });
+  collections = collections.filter(c => c.id !== cid);
+  if (currentCollectionId === cid) currentCollectionId = 'untagged';
+  renderThemeSheetList();
+  renderLib();
 }
 
 // ══ 发送消息 ══
@@ -1748,8 +1757,7 @@ function sendMessage() {
   const imgs = pendingChatImages.slice();
   if (!text && !imgs.length) return;
 
-  const newId = Date.now();
-  openCollectionSheet({ id: newId, text, imageUrls: imgs });
+  saveInspiration({ id: Date.now(), text, imageUrls: imgs });
 
   input.value = '';
   autoResize(input);
@@ -1781,7 +1789,7 @@ function renderLib() {
         </div>
       </div>`;
   }).join('');
-  root.innerHTML = cards + `<div style="padding:16px 0;text-align:center;font-size:13px;color:#ccc;">和点点聊天后记一条，选合集归档 ✦</div>`;
+  root.innerHTML = cards + `<div style="padding:16px 0;text-align:center;font-size:13px;color:#ccc;">和点点聊天后记一条，自动归入主题 ✦</div>`;
   bindLibStripsAfterRender();
 }
 
@@ -2212,9 +2220,7 @@ function goPublish() {
 initLightboxDelegation();
 renderLib();
 initVoiceButton();
-if (quickPanel && quickPanel.classList.contains('open')) {
-  setTimeout(() => openQuickPanel(), 0);
-}
+runChatIntroAnimation();
 </script>
 </body>
 </html>
